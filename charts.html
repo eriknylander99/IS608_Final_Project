@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="IS608 Final Project - VA SOL Data and Income">
+    <meta name="author" content="Erik Nylander">
+
+    <title>Virginia Testing Data and Income</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/dashboard.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="css/ie-emulation-modes-warning.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: black;
+        shape-rendering: crispEdges;
+      }
+    .axis text {
+        font-family: sans-serif;
+        font-size: 12px;
+      }
+    .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        border-radius: 2px;
+      }
+    .dot {
+        fill: blue;
+        opacity: 0.4;
+    }
+    .dot:hover {
+        fill: red;
+        opacity: 1;
+      }
+
+    </style>
+    <!-- Loading the D3 scripts -->
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="js/selectable.js"></script>
+    <script type="text/javascript" src="js/d3.tip.min.js"></script>
+  </head>
+
+  <body>
+    <!-- Top Navbar code and Links -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Income Effects on Virginia Public School Testing Data</a>
+        </div>
+        <!-- Right side of NavBar -->
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="http://sps.cuny.edu/programs/ms_dataanalytics">CUNY MSDA</a></li>
+            <li><a href="http://jlaurito.github.io/CUNY_IS608/">IS 608 Final Projects</a></li>
+            <li><a href="https://github.com/eriknylander99">GitHub</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Sidebar code and links -->
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li><a href="index.html">Overview</a></li>
+            <li class="active"><a href="charts.html">Analytics<span class="sr-only">(current)</span></a></li>
+            <li><a href="map.html">Maps</a></li>
+          </ul>
+        </div>
+
+        <!-- Main Page code goes here! -->
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <h1 class="page-header">Influence of Income on Vriginia SOL Scores</h1>
+          <p>This visualization contains information about the effects of income factors on the Virginia Standards of Learning test score.</p>
+          <select id="tests">
+            <option value = All_Tests selected="selected">All Tests</option>
+            <option value = "English_Reading">English - Reading</option>
+            <option value = "Writing">English - Writing</option>
+            <option value = "History">History - Grade 3</option>
+            <option value = "VA_Studies">Virginia Studies</option>
+            <option value = "Civics_and_Econ">Civics and Economics</option>
+            <option value = "Geography">Geography</option>
+            <option value = "US_History_I">US History I</option>
+            <option value = "US_History_II">US History II</option>
+            <option value = "VA_and_US_History">Virginia and US History</option>
+            <option value = "World_History_I">World History I</option>
+            <option value = "World_History_II">World History II</option>
+            <option value = "Mathematics">Mathematics (3rd-8th Grade)</option>
+            <option value = "Algebra_I">Algebra I</option>
+            <option value = "Geometry">Geometry</option>
+            <option value = "Algebra_II">Algebra II</option>
+            <option value = "Science">Science (5th and 8th Grade)</option>
+            <option value = "Earth_science">Earth Science</option>
+            <option value = "Biology">Biology</option>
+            <option value = "Chemistry">Chemistry</option>
+          </select>
+          <select id="factors">
+            <option value = "poverty" selected="selected">Percentage of Families in Poverty</option>
+            <option value = "median_household_income">Median Household Income</option>
+          </select>
+          <select id="scoretype">
+            <option value = "data/sol_percent.csv" selected="selected">Percent Pass Rates</option>
+            <option value = "data/sol_score.csv">Raw Test Scores</option>
+          </select>
+          <input type="submit" value="Graph" onClick="drawChart();"></input>
+
+          <h3 id="ctitle1" class="sub-header"></h3>
+
+          <br></br>
+          <div id="chart1"></div>
+
+          <script type="text/javascript">
+            function drawChart(test,factor,file) {
+              // Setting up the dimensions for the charts
+              d3.select("#svg1").remove();
+              var height = 400,
+                  width = 800;
+              var margin = {top:0, right:0, bottom:40, left:70}
+              var svg = d3.select("#chart1")
+                          .append("svg")
+                          .attr("id","svg1")
+                          .attr("width", width + margin.left +margin.right)
+                          .attr("height", height + margin.top + margin.bottom)
+                          .append("g")
+
+              // Getting data from the dropdown menus
+              var test = document.getElementById("tests").value,
+                  factor = document.getElementById("factors").value,
+                  file = document.getElementById("scoretype").value;
+
+              // Reading in the data for the graph
+
+              d3.csv(file, function(data){
+                data.forEach(function(d){
+                  d.county = d.DIV_NAME;
+                  d.sol = +d[test];
+                  d.poverty = +d[factor];
+                });
+                data = data.filter(function(d){ return d.sol !== 0; });
+
+                // Setting Rules for the image
+                var x = d3.scale.linear().range([margin.left, width]);
+                var y = d3.scale.linear().range([height, 0]);
+                var xAxis = d3.svg.axis().scale(x).orient("bottom");
+                var yAxis = d3.svg.axis().scale(y).orient("left");
+                var xMin = (d3.min(data, function(d) { return d.poverty; }) - 1) | 0,
+                    xMax = (d3.max(data, function(d) { return d.poverty; }) + 1) | 0,
+                    yMin = (d3.min(data, function(d) { return d.sol; }) - 3) | 0,
+                    yMax = (d3.max(data, function(d) { return d.sol; }) + 3) | 0;
+
+                // Creating map domains
+                x.domain([xMin, xMax]);
+                y.domain([yMin, yMax]);
+                if(factor == "poverty"){
+                  xText = "Percentage of Families, with Children, Under the Poverty Line"
+                } else {
+                  xText = "Median Household Income"
+                }
+                if(file == "data/sol_percent.csv"){
+                  yText = "Percentage of Students Passing the SOL"
+                  yTip = "Percent Pass: "
+                } else {
+                  yText = "Average Raw Sol Score"
+                  yTip = "SOL Score: "
+                }
+
+                d3.select("#ctitle1")
+                  .text(test + " vs " + xText)
+                // Writing the Axes
+                // x-axis
+                svg.append("g")
+                  .attr("class", "x axis")
+                  .attr("transform", "translate(0," + height + ")")
+                  .call(xAxis)
+                .append("text")
+                  .attr("class", "label")
+                  .attr("x", (width/2))
+                  .attr("y", 35)
+                  .style("text-anchor", "middle")
+                  .text(xText);
+                // y-axis
+                svg.append("g")
+                  .attr("class", "y axis")
+                  .attr("transform", "translate("+ margin.left + ",0)")
+                  .call(yAxis)
+                .append("text")
+                  .attr("class", "label")
+                  .attr("transform", "rotate(-90)")
+                  .attr("y", -60)
+                  .attr("x", 0-(height/2))
+                  .attr("dy", ".75em")
+                  .style("text-anchor", "middle")
+                  .text(yText);
+
+                  // Adding a tooltip
+                  var tipData = '';
+
+                  var tip = d3.tip()
+                    .attr("class", "d3-tip")
+                    .html(function(d){
+                      return "<strong>" + tipData + "</strong>" + "<br>" + yTip + d3.format(".3g")(d.sol);
+                    })
+                    .direction("ne");
+
+                  function toolMove(){ return svg.call(tip);};
+
+                  function writeTip(){
+                    return toolMove()
+                  }
+
+                  // Pushing the data to the svg
+                  svg.selectAll(".dot")
+                      .data(data)
+                      .enter()
+                      .append("circle")
+                      .attr("class", "dot")
+                      .attr("r", 5)
+                      .attr("cx", function(d){return x(d.poverty);})
+                      .attr("cy", function(d){return y(d.sol);})
+                      .text(function(d){return d.county;})
+                      .on("mousemove", tip.show)
+                      .on("mouseout", tip.hide )
+                      .on("mouseover", function(d){
+                        tipData = d.county;
+                        return toolMove();
+                      })
+
+              });
+
+            };
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="../../dist/js/bootstrap.min.js"></script>
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+    <script src="../../assets/js/vendor/holder.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>
