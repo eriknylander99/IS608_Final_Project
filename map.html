@@ -25,6 +25,37 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+    <!-- Loading the D3 scripts -->
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="js/d3.tip.min.js"></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+
+    <!-- CSS for drawing the map-->
+    <style type="text/css">
+    .counties {
+      fill: #ccc;
+    }
+
+    .county-border {
+      fill: none;
+      stroke:#000000;
+      stroke-width: 1.01px;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+
+    .q0-9 { fill:rgb(247,251,255); }
+    .q1-9 { fill:rgb(222,235,247); }
+    .q2-9 { fill:rgb(198,219,239); }
+    .q3-9 { fill:rgb(158,202,225); }
+    .q4-9 { fill:rgb(107,174,214); }
+    .q5-9 { fill:rgb(66,146,198); }
+    .q6-9 { fill:rgb(33,113,181); }
+    .q7-9 { fill:rgb(8,81,156); }
+    .q8-9 { fill:rgb(8,48,107); }
+    </style>
+
   </head>
 
   <body>
@@ -57,7 +88,7 @@
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
             <li><a href="index.html">Overview</a></li>
-            <li><a href="charts.html">Analytics</a></li>
+            <li><a href="charts.html">Charts</a></li>
             <li class="active"><a href="map.html">Maps<span class="sr-only">(current)</span></a></li>
           </ul>
         </div>
@@ -70,6 +101,39 @@
 
           <h2 class="sub-header">Section title</h2>
           <div id="chart2"></div>
+          <script type="text/javascripts">
+            function drawMap(){
+              var width = 600,
+                  height = 350;
+
+              var rateBySOL = d3.map();
+
+              var quantize = d3.scale.quantize()
+                  .domain([0, .15])
+                  .range(d3.range(9).map(function(i) { return "q" + i + "-9"; }));
+
+              var projection = d3.geo.conicConformal()
+                  .parallels([38 + 02 / 60, 39 + 12 / 60])
+                  .rotate([78 + 30 / 60, 0])
+                  .scale(8000)
+                  .translate([0, 0]);
+
+              var path = d3.geo.path()
+                  .projection(projection);
+
+              var svg = d3.select("#chart1")
+                  .append("svg")
+                  .attr("id", "svg1")
+                  .attr("width", width)
+                  .attr("height", height);
+
+              queue()
+                  .defer(d3.json, "data/va-counties.json")
+                  .defer(ds.csv, "")
+            };
+            drawMap();
+          </script>
+
         </div>
       </div>
     </div>
@@ -78,10 +142,8 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script src="../../dist/js/bootstrap.min.js"></script>
-    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
-    <script src="../../assets/js/vendor/holder.js"></script>
+    <script src="js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="js/ie10-viewport-bug-workaround.js"></script>
   </body>
 </html>
