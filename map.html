@@ -18,25 +18,26 @@
 
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="css/ie-emulation-modes-warning.js"></script>
+    <script src="js/ie-emulation-modes-warning.js"></script>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+
     <![endif]-->
     <!-- Loading the D3 scripts -->
-    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
-    <script type="text/javascript" src="js/d3.tip.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="js/d3.tip.min.js"></script>
     <script src="http://d3js.org/queue.v1.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <script src="http://d3js.org/d3.geo.projection.v0.min.js"></script>
 
     <!-- CSS for drawing the map-->
     <style type="text/css">
     .counties {
       fill: #ccc;
     }
-
     .county-border {
       fill: none;
       stroke:#000000;
@@ -44,17 +45,23 @@
       stroke-linejoin: round;
       stroke-linecap: round;
     }
+    .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        border-radius: 2px;
+        pointer-events: none;
+      }
 
-    .q0-9 { fill:rgb(247,251,255); }
-    .q1-9 { fill:rgb(222,235,247); }
-    .q2-9 { fill:rgb(198,219,239); }
-    .q3-9 { fill:rgb(158,202,225); }
-    .q4-9 { fill:rgb(107,174,214); }
-    .q5-9 { fill:rgb(66,146,198); }
-    .q6-9 { fill:rgb(33,113,181); }
-    .q7-9 { fill:rgb(8,81,156); }
-    .q8-9 { fill:rgb(8,48,107); }
-    </style>
+    .q0-9 { fill:#edf8e9; }
+    .q1-9 { fill:#bae4b3; }
+    .q2-9 { fill:#74c476; }
+    .q3-9 { fill:#238b45; }
+
+
+  </style>
 
   </head>
 
@@ -99,37 +106,81 @@
           <p>Text for the page goes here!</p>
           <div id="chart1"></div>
 
-          <h2 class="sub-header">Section title</h2>
-          <div id="chart2"></div>
-          <script type="text/javascripts">
+          <script type="text/javascript">
             function drawMap(){
-              var width = 600,
-                  height = 350;
+              var width = 960,
+                  height = 500;
 
               var rateBySOL = d3.map();
 
               var quantize = d3.scale.quantize()
-                  .domain([0, .15])
-                  .range(d3.range(9).map(function(i) { return "q" + i + "-9"; }));
+                  .domain([71, 95])
+                  .range(d3.range(4).map(function(i) { return "q" + i + "-9"; }));
 
               var projection = d3.geo.conicConformal()
                   .parallels([38 + 02 / 60, 39 + 12 / 60])
                   .rotate([78 + 30 / 60, 0])
                   .scale(8000)
-                  .translate([0, 0]);
+                  .translate([0, 500]);
 
               var path = d3.geo.path()
                   .projection(projection);
 
               var svg = d3.select("#chart1")
                   .append("svg")
-                  .attr("id", "svg1")
                   .attr("width", width)
                   .attr("height", height);
 
+              var tipData = ''
+                  rate = "";
+
+              var tip = d3.tip()
+                  .attr("class", "d3-tip")
+                  .direction("n")
+                  .html(function(d){
+                    return "<strong>" + tipData + "</strong><br>" +
+                      "<strong> Pass Rate: " + d3.round(rate, 2) + "%</strong>"
+                  });
+
+              function toolMove(){ return svg.call(tip);};
+
+              function writeTip(){ return toolMove();};
+
               queue()
-                  .defer(d3.json, "data/va-counties.json")
-                  .defer(ds.csv, "")
+                  .defer(d3.json, "data/va.json")
+                  .defer(d3.csv, "data/sol_test.csv",
+                          function(d) {rateBySOL.set(d.id, +d.All_Tests); })
+                  .await(ready);
+
+              function ready(error, va){
+                var bounds = path.bounds(topojson.feature(va, va.objects.counties));
+
+                projection
+                .translate([width / 2 - (bounds[0][0] + bounds[1][0]) / 2,
+                            1.4*height - (bounds[0][1] + bounds[1][1]) / 2]);
+
+                svg.append("g")
+                    .attr("class", "counties")
+                  .selectAll("path")
+                    .data(topojson.feature(va, va.objects.counties).features)
+                  .enter().append("path")
+                    .attr("class", function(d) {return quantize(rateBySOL.get(d.id));})
+                    .attr("d", path)
+                    .on("mousemove", tip.show)
+                    .on("mouseout", tip.hide)
+                    .on("mouseover", function(d){
+                      tipData = d.properties.name;
+                      rate = rateBySOL.get(d.id);
+                      return toolMove();
+                    });
+
+
+                svg.append("path")
+                    .datum(topojson.mesh(va, va.objects.counties, function(a,b) {return a !== b;}))
+                    .attr("class", "county-border")
+                    .attr("d", path);
+              };
+              //d3.select(self.frameElement).style("height", height + "px");
             };
             drawMap();
           </script>
