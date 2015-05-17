@@ -33,6 +33,10 @@
 
     <!-- CSS for the elements in the chart -->
     <style type="text/css">
+    .body {
+            padding: 10;
+            margin: 10;
+      }
     .axis path,
     .axis line {
         fill: none;
@@ -85,7 +89,7 @@
           <ul class="nav navbar-nav navbar-right">
             <li><a href="http://sps.cuny.edu/programs/ms_dataanalytics">CUNY MSDA</a></li>
             <li><a href="http://jlaurito.github.io/CUNY_IS608/">IS 608 Final Projects</a></li>
-            <li><a href="https://github.com/eriknylander99">GitHub</a></li>
+            <li><a href="https://github.com/eriknylander99">Erik Nylander</a></li>
           </ul>
         </div>
       </div>
@@ -98,14 +102,17 @@
           <ul class="nav nav-sidebar">
             <li><a href="index.html">Overview</a></li>
             <li class="active"><a href="charts.html">Charts<span class="sr-only">(current)</span></a></li>
-            <li><a href="map.html">Maps</a></li>
+            <li><a href="map.html">Pass Rate Map</a></li>
+            <li><a href="data_links.html">Data Sources</a></li>
           </ul>
         </div>
 
         <!-- Main Page code goes here! -->
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <h1 class="page-header">Influence of Income on Vriginia SOL Scores</h1>
-          <p>This visualization contains information about the effects of income factors on the Virginia Standards of Learning test score.</p>
+          This visualization contains information about the effects of income factors on the Virginia Standards of Learning test scores. Use the dropdown boxes to select the factors to be compared.
+          <br>
+          <br>
           <select id="tests">
             <option value = All_Tests selected="selected">All Tests</option>
             <option value = "English_Reading">English - Reading</option>
@@ -124,7 +131,7 @@
             <option value = "Geometry">Geometry</option>
             <option value = "Algebra_II">Algebra II</option>
             <option value = "Science">Science (5th and 8th Grade)</option>
-            <option value = "Earth_science">Earth Science</option>
+            <option value = "Earth_Science">Earth Science</option>
             <option value = "Biology">Biology</option>
             <option value = "Chemistry">Chemistry</option>
           </select>
